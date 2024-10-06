@@ -1,94 +1,95 @@
 {
   "bodyParts": {
+      
     "Front1": [
-      "neck",
-      "chest",
-      "right shoulder",
-      "left shoulder",
-      "right bicep",
-      "left bicep"
+      "Neck",
+      "Chest",
+      "Right shoulder",
+      "Left shoulder",
+      "Right bicep",
+      "Left bicep"
     ],
     "Front2a": [
-      "chest",
-      "left bicep",
-      "left forearm",
-      "left abdominal corset",
-      "abdominal area"
+      "Chest",
+      "Left bicep",
+      "Left forearm",
+      "Left abdominal corset",
+      "Abdominal area"
     ],
     "Front2b": [
-      "right bicep",
-      "right forearm",
-      "chest",
-      "right abdominal corset",
-      "abdominal area"
+      "Right bicep",
+      "Right forearm",
+      "Chest",
+      "Right abdominal corset",
+      "Abdominal area"
     ],
     "Front2c": [
-      "abdominal area",
-      "chest",
-      "right forearm",
-      "right abdominal corset",
-      "left forearm",
-      "left abdominal corset"
+      "Abdominal area",
+      "Chest",
+      "Right forearm",
+      "Right abdominal corset",
+      "Left forearm",
+      "Left abdominal corset"
     ],
     "Front3a": [
-      "abdominal region",
-      "left inner thigh",
-      "left outer thigh",
-      "left knee"
+      "Abdominal region",
+      "Left inner thigh",
+      "Left outer thigh",
+      "Left knee"
     ],
     "Front3b": [
-      "abdominal region",
-      "right inner thigh",
-      "right outer thigh",
-      "right knee"
+      "Abdominal region",
+      "Right inner thigh",
+      "Right outer thigh",
+      "Right knee"
     ],
     "Front4": [
-      "right lower leg",
-      "left lower leg",
-      "right foot",
-      "left foot"
+      "Right lower leg",
+      "Left lower leg",
+      "Right foot",
+      "Left foot"
     ],
     "Back1": [
-      "upper back",
-      "right shoulder",
-      "left shoulder",
-      "middle back"
+      "Upper back",
+      "Right shoulder",
+      "Left shoulder",
+      "Mid back"
     ],
     "Back2a": [
-      "left tricep",
-      "left forearm",
-      "middle back",
-      "lowerback",
-      "glutes"
+      "Left tricep",
+      "Left forearm",
+      "Mid back",
+      "Lowerback",
+      "Glutes"
     ],
     "Back2b": [
-      "right tricep",
-      "right forearm",
-      "middle back",
-      "lowerback",
-      "glutes"
+      "Right tricep",
+      "Right forearm",
+      "Mid back",
+      "Lowerback",
+      "Glutes"
     ],
     "Back2c": [
-      "upper back",
-      "middle back",
-      "right shoulder",
-      "left shoulder",
-      "right tricep",
-      "left tricep"
+      "Upper back",
+      "Mid back",
+      "Right shoulder",
+      "Left shoulder",
+      "Right tricep",
+      "Left tricep"
     ],
     "Back3a": [
-      "glutes",
-      "left hamstring"
+      "Glutes",
+      "Left hamstring"
     ],
     "Back3b": [
-      "glutes",
-      "right hamstring"
+      "Glutes",
+      "Right hamstring"
     ],
     "Back4": [
-      "right calf",
-      "left calf",
-      "right heel",
-      "left heel"
+      "Right calf",
+      "Left calf",
+      "Right heel",
+      "Left heel"
     ]
   }
 }

@@ -14,57 +14,72 @@ struct ContentView: View {
     @State private var isBack: Bool = false
     @StateObject private var bodyView = BodyViewModel()
     @State private var bodyPartsData: BodyPartsData?
-    @State private var stage:Stages = .selectPart
+    @State private var stage:Stages = .start
     @State var isSelected = false
     @State private var selectedBodyPart = ""
     @State var title:String = "How do you feel?"
+    @State var zoom:String  = "Front1"
+    
     
     var body: some View {
         ZStack {
             VStack {
+                //------------------------------------------------------------header/title
                 Text(title)
                     .font(.headline)
                     .foregroundStyle(Color("text.primary"))
                 Spacer()
                 ZStack {
+                    //----------------------------------------------------stats
                     VStack {
-                        HStack {
-                            VStack{
-                                Image(systemName: "waveform.path.ecg")
-                                    .padding(4)
-                                    .foregroundStyle(.white)
-                                    .background(Color.green)
-                                    .clipShape(Circle())
-                                
-                                Text("120/80")
-                                    .font(.largeTitle)
-                                    .fontWeight(.medium)
-                            }
-                            Spacer()
-                            VStack{
-                                Image(systemName: "heart.fill")
-                                    .padding(4)
-                                    .foregroundStyle(.white)
-                                    .background(Color.red)
-                                    .clipShape(Circle())
-                                
-                                HStack (alignment: .bottom) {
-                                    Text("82")
+                        if stage == .start {
+                            HStack {
+                                VStack{
+                                    Image(systemName: "waveform.path.ecg")
+                                        .padding(4)
+                                        .foregroundStyle(.white)
+                                        .background(Color.green)
+                                        .clipShape(Circle())
+                                    
+                                    Text("120/80")
                                         .font(.largeTitle)
                                         .fontWeight(.medium)
-                                    Text("BPM")
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(.secondary)
-                                        .frame(height: 30)
+                                }
+                                Spacer()
+                                VStack{
+                                    Image(systemName: "heart.fill")
+                                        .padding(4)
+                                        .foregroundStyle(.white)
+                                        .background(Color.red)
+                                        .clipShape(Circle())
+                                    
+                                    HStack (alignment: .bottom) {
+                                        Text("82")
+                                            .font(.largeTitle)
+                                            .fontWeight(.medium)
+                                        Text("BPM")
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(.secondary)
+                                            .frame(height: 30)
+                                    }
                                 }
                             }
                         }
                         Spacer()
                     }
                     .padding(.top, 32)
+                    //---------------------------------------------- Rive view
                     bodyView.view()
                 }
-                
+                .onChange(of: bodyView.zoomState) { oldValue, newValue in
+                    if bodyView.zoomState != "idle" {
+                        withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
+                            stage = .selectPart
+                        }
+                    }
+                    
+                }
+                //---------------------------------------------------- front/back tab
                 VStack (spacing:16){
                     ZStack {
                         HStack{
@@ -124,6 +139,12 @@ struct ContentView: View {
                     .onChange(of: isBack) { oldValue, newValue in
                         bodyView.setInput("back?", value: isBack)
                     }
+                    .onChange(of: bodyView.musclePart, { oldValue, newValue in
+                        withAnimation{
+                            selectedBodyPart = newValue
+                        }
+                        
+                    })
                     .background(
                         RoundedRectangle(cornerRadius: 64)
                             .fill(Color("bg.secondary"))
@@ -144,6 +165,7 @@ struct ContentView: View {
                 .padding(.bottom, 32)
                 
             }
+            //------------------------------------------select body part modal
             if stage == .selectPart {
                 VStack {Spacer()
                     VStack{
@@ -153,7 +175,8 @@ struct ContentView: View {
                                 Text("I feel pain in my ...")
                                     .foregroundStyle(Color("text.secondary"))
                                 
-                                Text("Lower back")
+                                Text(selectedBodyPart)
+                                    .contentTransition(.numericText())
                                     .font(.title2)
                                     .fontWeight(.medium)
                                     .foregroundStyle(Color("text.primary"))
@@ -163,23 +186,68 @@ struct ContentView: View {
                         .padding()
                         .background(Color("bg.tertiary"))
                         .clipShape(RoundedRectangle(cornerRadius: 64))
-                        
+                        //---------------------------------------------------For Each section
                         ScrollView {
-                            ForEach(bodyPartsData?.bodyParts.front1 ?? [], id: \.self) { part in
-                                BodyItem(item: part, isSelected: selectedBodyPart == part)
-                                    .onTapGesture {
-                                        selectedBodyPart = part
-                                        isSelected = true
-                                    }
+                            if let bodyParts = bodyPartsData?.bodyParts,
+                               let currentBodyParts = getBodyPartsArray(for: bodyParts, zoomState: bodyView.zoomState) {
+                                ForEach(currentBodyParts, id: \.self) { part in
+                                    BodyItem(item: part, isSelected: selectedBodyPart == part)
+                                        .onTapGesture {
+                                            
+                                            isSelected = true
+                                            withAnimation{
+                                                selectedBodyPart = part
+                                                bodyView.triggerInput(part)
+                                            }
+                                            
+                                        }
+                                }
+                            } else {
+                                Text("No body parts available")
                             }
                         }.scrollIndicators(.hidden)
+                        HStack{
+                            Button {
+                                withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
+                                    stage = .start
+                                }
+                                bodyView.setInput("zoomState", value: Double (0))
+                                
+                            } label: {
+                                Image(systemName: "arrow.down")
+                                    .padding()
+                                    .foregroundColor(Color("text.primary"))
+                                    .frame(width:115)
+                                
+                            }
+                            Button {
+                                stage = .painType
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    Text("Continue")
+                                        .padding()
+                                    Spacer()
+                                }
+                                .background(Color("bg.dark"))
+                                .foregroundStyle(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 64))
+                                
+                            }
+                            
+                            
+                        }
+                        .padding(.bottom, 8)
                     }
                     .padding(8)
-                    .frame(height:320)
+                    .frame(height:400)
                     .background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
                     .shadow(color:.black.opacity(0.2), radius: 16)
                 }
+                .zIndex(2)
+                .transition(.move(edge: .bottom))
+                
                 
             }
         }
@@ -191,16 +259,26 @@ struct ContentView: View {
         }
     }
     func loadBodyPartsData() {
-            if let url = Bundle.main.url(forResource: "BodyParts", withExtension: "json") {
-                do {
-                    let data = try Data(contentsOf: url)
-                    let decoder = JSONDecoder()
-                    bodyPartsData = try decoder.decode(BodyPartsData.self, from: data)
-                } catch {
-                    print("Error decoding JSON: \(error)")
-                }
+        if let url = Bundle.main.url(forResource: "BodyParts", withExtension: "json") {
+            do {
+                let data = try Data(contentsOf: url)
+                let decoder = JSONDecoder()
+                bodyPartsData = try decoder.decode(BodyPartsData.self, from: data)
+            } catch {
+                print("Error decoding JSON: \(error)")
             }
         }
+    }
+    func getBodyPartsArray(for bodyParts: BodyParts, zoomState: String) -> [String]? {
+        let mirror = Mirror(reflecting: bodyParts)
+        
+        // Dynamically access the property by name
+        if let bodyPartArray = mirror.children.first(where: { $0.label == zoomState })?.value as? [String] {
+            return bodyPartArray
+        }
+        
+        return nil
+    }
     
 }
 
