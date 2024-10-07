@@ -17,7 +17,7 @@ struct ContentView: View {
     @State private var stage:Stages = .start
     @State var isSelected = false
     @State private var selectedBodyPart = ""
-    @State var title:String = "How do you feel?"
+    @State var title:String = "How do you feel today?"
     @State var zoom:String  = "Front1"
     
     
@@ -69,15 +69,7 @@ struct ContentView: View {
                     }
                     .padding(.top, 32)
                     //---------------------------------------------- Rive view
-                    bodyView.view()
-                }
-                .onChange(of: bodyView.zoomState) { oldValue, newValue in
-                    if bodyView.zoomState != "idle" {
-                        withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
-                            stage = .selectPart
-                        }
-                    }
-                    
+                        bodyView.view()
                 }
                 //---------------------------------------------------- front/back tab
                 VStack (spacing:16){
@@ -143,8 +135,15 @@ struct ContentView: View {
                         withAnimation{
                             selectedBodyPart = newValue
                         }
-                        
                     })
+                    .onChange(of: bodyView.zoomState) { oldValue, newValue in
+                        if bodyView.zoomState != "idle" {
+                            withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
+                                stage = .selectPart
+                            }
+                        }
+                        
+                    }
                     .background(
                         RoundedRectangle(cornerRadius: 64)
                             .fill(Color("bg.secondary"))
@@ -184,7 +183,6 @@ struct ContentView: View {
                             Spacer()
                         }
                         .padding()
-                        .background(Color("bg.tertiary"))
                         .clipShape(RoundedRectangle(cornerRadius: 64))
                         //---------------------------------------------------For Each section
                         ScrollView {
@@ -204,6 +202,7 @@ struct ContentView: View {
                                             else if part == "Upper back" {
                                                 bodyView.setInput("zoomState", value: Double(11))
                                             }
+                                            print(bodyView.musclePart)
                                         }
                                 }
                             } else {
@@ -241,13 +240,13 @@ struct ContentView: View {
                             
                             
                         }
-                        .padding(.bottom, 8)
+                        .padding(.bottom, 4)
                     }
                     .padding(8)
                     .frame(height:450)
                     .background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
-                    .shadow(color:.black.opacity(0.2), radius: 16)
+                    .shadow(color:.black.opacity(0.1), radius: 16)
                 }
                 .zIndex(2)
                 .transition(.move(edge: .bottom))
@@ -260,6 +259,18 @@ struct ContentView: View {
         .edgesIgnoringSafeArea(.bottom)
         .onAppear {
             loadBodyPartsData()
+        }
+        .onChange(of: stage) { oldValue, newValue in
+            if stage == .start {
+                title = "How do you feel today?"
+            } else if stage == .selectPart {
+                title = "Where do you feel pain?"
+            } else if stage == .painType {
+                title = "What type of pain do you feel?"
+            } else if stage == .severity {
+                title = "How much does it hurt?"
+            }
+            
         }
     }
     func loadBodyPartsData() {
@@ -304,6 +315,7 @@ struct BodyItem: View {
         VStack{
             HStack{
                 Text(item)
+                    .foregroundStyle(Color(isSelected ? "text.primary" :"text.secondary"))
                 Spacer()
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")

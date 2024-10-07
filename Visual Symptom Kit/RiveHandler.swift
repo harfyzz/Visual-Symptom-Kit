@@ -34,8 +34,6 @@ class BodyViewModel: RiveViewModel {
             
         }
         
-        debugPrint("Event Name: \(riveEvent.name())")
-        debugPrint("Event Type: \(riveEvent.type())")
     }
     
 

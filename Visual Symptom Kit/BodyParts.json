@@ -51,20 +51,20 @@
         ],
         "Back1": [
             "Upper back",
-            "Right shoulder",
-            "Left shoulder",
+            "Posterior right shoulder",
+            "Posterior left shoulder",
             "Mid back"
         ],
         "Back2a": [
             "Left tricep",
-            "Left forearm",
+            "Posterior left forearm",
             "Mid back",
-            "Lowerback",
+            "Lower back",
             "Glutes"
         ],
         "Back2b": [
             "Right tricep",
-            "Right forearm",
+            "Posterior right forearm",
             "Mid back",
             "Lower back",
             "Glutes"
