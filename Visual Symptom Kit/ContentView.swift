@@ -14,11 +14,14 @@ struct ContentView: View {
     @State private var isBack: Bool = false
     @StateObject private var bodyView = BodyViewModel()
     @State private var bodyPartsData: BodyPartsData?
-    @State private var stage:Stages = .start
+    @State private var stage:Stages = .selectPart
     @State var isSelected = false
     @State private var selectedBodyPart = ""
     @State var title:String = "How do you feel today?"
     @State var zoom:String  = "Front1"
+    @State var painList = PainType()
+    @Namespace var whiteBg
+    @State var isStarting = false
     
     
     var body: some View {
@@ -69,8 +72,10 @@ struct ContentView: View {
                     }
                     .padding(.top, 32)
                     //---------------------------------------------- Rive view
-                        bodyView.view()
+                    bodyView.view()
+                        
                 }
+                .allowsHitTesting(stage == .selectPart ? true : false)
                 //---------------------------------------------------- front/back tab
                 VStack (spacing:16){
                     ZStack {
@@ -139,7 +144,7 @@ struct ContentView: View {
                     .onChange(of: bodyView.zoomState) { oldValue, newValue in
                         if bodyView.zoomState != "idle" {
                             withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
-                                stage = .selectPart
+                                isStarting = true
                             }
                         }
                         
@@ -164,95 +169,162 @@ struct ContentView: View {
                 .padding(.bottom, 32)
                 
             }
-            //------------------------------------------select body part modal
-            if stage == .selectPart {
+            //------------------------------------------Screen 2: select body part modal
+            
+            if isStarting {
                 VStack {Spacer()
-                    VStack{
-                        HStack {
-                            Spacer()
-                            VStack(spacing:8){
-                                Text("I feel pain in my ...")
-                                    .foregroundStyle(Color("text.secondary"))
+                    if stage == .selectPart {
+                        VStack{
+                            
+                                VStack(spacing:8){
+                                    Text("I feel pain in my ...")
+                                        .matchedGeometryEffect(id: "title", in: whiteBg)
+                                        .foregroundStyle(Color("text.secondary"))
+                                    
+                                    Text(selectedBodyPart)
+                                        .contentTransition(.numericText())
+                                        .font(.title2)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(Color("text.primary"))
+                                }
                                 
-                                Text(selectedBodyPart)
-                                    .contentTransition(.numericText())
-                                    .font(.title2)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(Color("text.primary"))
+                            .padding()
+                            .clipShape(RoundedRectangle(cornerRadius: 64))
+                            //---------------------------------------------------For Each section
+                            ScrollView {
+                                if let bodyParts = bodyPartsData?.bodyParts,
+                                   let currentBodyParts = getBodyPartsArray(for: bodyParts, zoomState: bodyView.zoomState) {
+                                    ForEach(currentBodyParts, id: \.self) { part in
+                                        BodyItem(item: part, isSelected: selectedBodyPart == part)
+                                            .onTapGesture {
+                                                isSelected = true
+                                                withAnimation{
+                                                    selectedBodyPart = part
+                                                    bodyView.triggerInput(part)
+                                                }
+                                                if part == "Chest" {
+                                                    bodyView.setInput("zoomState", value: Double(1))
+                                                }
+                                                else if part == "Upper back" {
+                                                    bodyView.setInput("zoomState", value: Double(11))
+                                                }
+                                            }
+                                    }
+                                } else {
+                                    Text("No body parts available")
+                                }
+                            }.scrollIndicators(.hidden)
+                            HStack{
+                                Button {
+                                    withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
+                                        isStarting = false
+                                    }
+                                    bodyView.setInput("zoomState", value: Double (0))
+                                    
+                                } label: {
+                                    Image(systemName: "arrow.down")
+                                        .padding()
+                                        .foregroundColor(Color("text.primary"))
+                                        .frame(width:115)
+                                    
+                                }
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        stage = .painType
+                                    }
+                                    bodyView.setInput("active?", value: false)
+                                } label: {
+                                    HStack {
+                                        Spacer()
+                                        Text("Continue")
+                                            .padding()
+                                        Spacer()
+                                    }
+                                    .background(Color("bg.dark"))
+                                    .foregroundStyle(.white)
+                                    .clipShape(RoundedRectangle(cornerRadius: 64))
+                                    
+                                }
+                                
+                                
                             }
-                            Spacer()
+                            .padding(.bottom, 4)
                         }
-                        .padding()
-                        .clipShape(RoundedRectangle(cornerRadius: 64))
-                        //---------------------------------------------------For Each section
-                        ScrollView {
-                            if let bodyParts = bodyPartsData?.bodyParts,
-                               let currentBodyParts = getBodyPartsArray(for: bodyParts, zoomState: bodyView.zoomState) {
-                                ForEach(currentBodyParts, id: \.self) { part in
-                                    BodyItem(item: part, isSelected: selectedBodyPart == part)
-                                        .onTapGesture {
-                                            isSelected = true
-                                            withAnimation{
-                                                selectedBodyPart = part
-                                                bodyView.triggerInput(part)
-                                            }
-                                            if part == "Chest" {
-                                                bodyView.setInput("zoomState", value: Double(1))
-                                            }
-                                            else if part == "Upper back" {
-                                                bodyView.setInput("zoomState", value: Double(11))
-                                            }
-                                            print(bodyView.musclePart)
-                                        }
-                                }
-                            } else {
-                                Text("No body parts available")
-                            }
-                        }.scrollIndicators(.hidden)
-                        HStack{
-                            Button {
-                                withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
-                                    stage = .start
-                                }
-                                bodyView.setInput("zoomState", value: Double (0))
-                                
-                            } label: {
-                                Image(systemName: "arrow.down")
+                        .padding(8)
+                        .frame(height:450)
+                        .background(
+                            RoundedRectangle(cornerRadius: 32)
+                                .fill(.white)
+                                .shadow(color:.black.opacity(0.1), radius: 16)
+                                .matchedGeometryEffect(id: "whiteBg", in: whiteBg)
+                        )
+                    }
+        //----------------------------------------------------Pain type
+                    else if stage == .painType {
+                        VStack {Spacer()
+                            VStack {
+                                Text("Type of pain")
+                                    .matchedGeometryEffect(id: "title", in: whiteBg)
                                     .padding()
                                     .foregroundColor(Color("text.primary"))
-                                    .frame(width:115)
-                                
-                            }
-                            Button {
-                                stage = .painType
-                            } label: {
-                                HStack {
-                                    Spacer()
-                                    Text("Continue")
-                                        .padding()
-                                    Spacer()
+                                LazyVGrid(columns: [GridItem(), GridItem()], spacing: 8) {
+                                    ForEach(painList.painType, id:\.self) { pain in
+                                        HStack{
+                                            Text(pain)
+                                            Spacer()
+                                        }
+                                        .padding(16)
+                                        .background(Color("bg.secondary"))
+                                        .clipShape(RoundedRectangle(cornerRadius: 64))
+                                    }
                                 }
-                                .background(Color("bg.dark"))
-                                .foregroundStyle(.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 64))
-                                
+                                HStack{
+                                    Button {
+                                        withAnimation(.easeInOut(duration: 0.2)){
+                                            stage = .selectPart
+                                        }
+                                        bodyView.setInput("active?", value: true)
+                                    } label: {
+                                        Image(systemName: "arrow.left")
+                                            .padding()
+                                            .foregroundColor(Color("text.primary"))
+                                            .frame(width:115)
+                                        
+                                    }
+                                    Button {
+                                        withAnimation{
+                                            stage = .severity
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Spacer()
+                                            Text("Continue")
+                                                .padding()
+                                            Spacer()
+                                        }
+                                        .background(Color("bg.dark"))
+                                        .foregroundStyle(.white)
+                                        .clipShape(RoundedRectangle(cornerRadius: 64))
+                                        
+                                    }
+                                    
+                                    
+                                }
+                                .padding(.bottom, 4)
                             }
-                            
-                            
+                            .padding(8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 32)
+                                    .fill(.white)
+                                    .shadow(color:.black.opacity(0.1), radius: 16)
+                                    .matchedGeometryEffect(id: "whiteBg", in: whiteBg)
+                            )
                         }
-                        .padding(.bottom, 4)
                     }
-                    .padding(8)
-                    .frame(height:450)
-                    .background(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 32))
-                    .shadow(color:.black.opacity(0.1), radius: 16)
-                }
-                .zIndex(2)
-                .transition(.move(edge: .bottom))
-                
-                
+                }.zIndex(2)
+                    .transition(.move(edge: .bottom))
             }
+            
         }
         .preferredColorScheme(.light)
         .padding()
