@@ -193,13 +193,17 @@ struct ContentView: View {
                                 ForEach(currentBodyParts, id: \.self) { part in
                                     BodyItem(item: part, isSelected: selectedBodyPart == part)
                                         .onTapGesture {
-                                            
                                             isSelected = true
                                             withAnimation{
                                                 selectedBodyPart = part
                                                 bodyView.triggerInput(part)
                                             }
-                                            
+                                            if part == "Chest" {
+                                                bodyView.setInput("zoomState", value: Double(1))
+                                            }
+                                            else if part == "Upper back" {
+                                                bodyView.setInput("zoomState", value: Double(11))
+                                            }
                                         }
                                 }
                             } else {
@@ -240,7 +244,7 @@ struct ContentView: View {
                         .padding(.bottom, 8)
                     }
                     .padding(8)
-                    .frame(height:400)
+                    .frame(height:450)
                     .background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 32))
                     .shadow(color:.black.opacity(0.2), radius: 16)
