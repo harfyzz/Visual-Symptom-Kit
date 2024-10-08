@@ -10,7 +10,7 @@ import SwiftUI
 struct PainTypeView: View {
     
     @State var painList = PainType()
-    @State var selectedPills:[String] = []
+    @Binding var selectedPills:[String]
     
     var body: some View {
         LazyVGrid(columns: [GridItem(), GridItem()], spacing: 8) {
@@ -41,7 +41,4 @@ struct PainTypeView: View {
         }
         
     }
-}
-#Preview {
-    PainTypeView()
 }

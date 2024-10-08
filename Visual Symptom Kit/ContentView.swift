@@ -23,7 +23,7 @@ struct ContentView: View {
     @State var subTitle = "I feel pain in my"
     @State var selectedPills:[String] = []
     @State var isPillSelected:Bool = false
-    @State var selectedSeverity:String = ""
+    @State var selectedSeverity:String = "Mild"
     
     
     var body: some View {
@@ -218,15 +218,18 @@ struct ContentView: View {
                             
               //------------------------------------------Screen 3: select pain type
                             else if stage == .painType {
-                                PainTypeView(selectedPills: selectedPills)
+                                PainTypeView(selectedPills: $selectedPills)
                                     .padding(8)
                             }
              
        //------------------------------------------Screen 4: select pain severity
                             else if stage == .severity {
-                                PainSeverity(selectedSeverity:$selectedSeverity, {
+                                
+                                PainSeverity(selectedSeverity:$selectedSeverity) {
                                     bodyView.triggerInput("\(selectedBodyPart)-\(selectedSeverity)")
-                                })
+                                }.onAppear{
+                                    bodyView.triggerInput("\(selectedBodyPart)-\(selectedSeverity)")
+                                }
                                     .padding(8)
                             }
         //-----------------------------------------------------------------------------Buttons
@@ -282,6 +285,9 @@ struct ContentView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 64))
                                     
                                 }
+                              .disabled(
+                                    stage == .painType && selectedPills.isEmpty
+                                    )
                             }
                             .padding(.bottom, 4)
                             
