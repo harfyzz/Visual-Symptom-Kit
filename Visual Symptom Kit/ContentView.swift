@@ -79,95 +79,100 @@ struct ContentView: View {
                 }
                 .allowsHitTesting(stage == .selectPart)
                 //---------------------------------------------------- front/back tab
-                VStack (spacing:16){
-                    ZStack {
-                        HStack{
-                            if isBack {
-                                Spacer()
-                                    .frame(width: 140, height: 50)
-                            }
-                            RoundedRectangle(cornerRadius: 64)
-                                .fill(.white)
-                                .frame(width: 140, height: 50)
-                                .shadow(
-                                    color: .black.opacity(0.02),
-                                    radius: 10,
-                                    x: 0,
-                                    y: 1
-                                )
-                            
-                            if !isBack {
-                                Spacer()
-                                    .frame(width: 140, height: 50)
-                            }
-                        }
-                        .padding(4)
-                        HStack{
-                            Button {
-                                withAnimation{
-                                    isBack = false
+                if stage == .selectPart {
+                    
+                    VStack (spacing:16){
+                        ZStack {
+                            HStack{
+                                if isBack {
+                                    Spacer()
+                                        .frame(width: 140, height: 50)
                                 }
-                                bodyView.triggerInput("front?")
-                            } label: {
-                                Text("Front")
-                                    .foregroundStyle(
-                                        Color(
-                                            isBack ? "text.secondary" :"text.primary"
+                                RoundedRectangle(cornerRadius: 64)
+                                    .fill(.white)
+                                    .frame(width: 140, height: 50)
+                                    .shadow(
+                                        color: .black.opacity(0.02),
+                                        radius: 10,
+                                        x: 0,
+                                        y: 1
+                                    )
+                                
+                                if !isBack {
+                                    Spacer()
+                                        .frame(width: 140, height: 50)
+                                }
+                            }
+                            .padding(4)
+                            HStack{
+                                Button {
+                                    withAnimation{
+                                        isBack = false
+                                    }
+                                    bodyView.triggerInput("front?")
+                                } label: {
+                                    Text("Front")
+                                        .foregroundStyle(
+                                            Color(
+                                                isBack ? "text.secondary" :"text.primary"
+                                            )
                                         )
-                                    )
-                                    .fontWeight(isBack ? .regular : .medium)
-                                    .frame(width: 140, height: 50)
+                                        .fontWeight(isBack ? .regular : .medium)
+                                        .frame(width: 140, height: 50)
+                                    
+                                    
+                                }
                                 
-                                
+                                Button {
+                                    withAnimation{
+                                        isBack = true
+                                    }
+                                    bodyView.triggerInput("back?")
+                                } label: {
+                                    Text("Back")
+                                        .foregroundStyle(
+                                            Color(isBack ? "text.primary" :"text.secondary")
+                                        )
+                                        .fontWeight(isBack ? .medium : .regular)
+                                        .frame(width: 140, height: 50)
+                                    
+                                }
+                            }
+                        }
+                        .onChange(of: bodyView.musclePart, { oldValue, newValue in
+                            withAnimation{
+                                selectedBodyPart = newValue
+                            }
+                        })
+                        .onChange(of: bodyView.zoomState) { oldValue, newValue in
+                            if bodyView.zoomState != "idle" {
+                                withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
+                                    isStarting = true
+                                }
                             }
                             
-                            Button {
-                                withAnimation{
-                                    isBack = true
-                                }
-                                bodyView.triggerInput("back?")
-                            } label: {
-                                Text("Back")
-                                    .foregroundStyle(
-                                        Color(isBack ? "text.primary" :"text.secondary")
-                                    )
-                                    .fontWeight(isBack ? .medium : .regular)
-                                    .frame(width: 140, height: 50)
-                                
-                            }
                         }
-                    }
-                    .onChange(of: bodyView.musclePart, { oldValue, newValue in
-                        withAnimation{
-                            selectedBodyPart = newValue
-                        }
-                    })
-                    .onChange(of: bodyView.zoomState) { oldValue, newValue in
-                        if bodyView.zoomState != "idle" {
-                            withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
-                                isStarting = true
-                            }
-                        }
-                        
-                    }
-                    .background(
-                        RoundedRectangle(cornerRadius: 64)
-                            .fill(Color("bg.secondary"))
-                    )
-                    VStack(spacing:8){
-                        Text("Where do you feel pain or discomfort?")
-                            .font(.headline)
-                            .foregroundStyle(Color("text.primary"))
-                        
-                        Text(
-                            "Tap any body part in the image above that represents where you feel pain or discomfort."
+                        .background(
+                            RoundedRectangle(cornerRadius: 64)
+                                .fill(Color("bg.secondary"))
                         )
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
+                        VStack(spacing:8){
+                            Text("Where do you feel pain or discomfort?")
+                                .font(.headline)
+                                .foregroundStyle(Color("text.primary"))
+                            
+                            Text(
+                                "Tap any body part in the image above that represents where you feel pain or discomfort."
+                            )
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        }
                     }
+                    .padding(.bottom, 32)
                 }
-                .padding(.bottom, 32)
+                
+                
                 
             }
             //------------------------------------------Screen 2: select body part modal
@@ -191,29 +196,25 @@ struct ContentView: View {
                             }
                             if stage == .selectPart {
                                 //---------------------------------------------------For Each section
-                                ScrollView {
-                                    if let bodyParts = bodyPartsData?.bodyParts,
-                                       let currentBodyParts = getBodyPartsArray(for: bodyParts, zoomState: bodyView.zoomState) {
-                                        ForEach(currentBodyParts, id: \.self) { part in
-                                            BodyItem(item: part, isSelected: selectedBodyPart == part)
-                                                .onTapGesture {
-                                                    isSelected = true
-                                                    withAnimation{
-                                                        selectedBodyPart = part
-                                                        bodyView.triggerInput(part)
-                                                    }
-                                                    if part == "Chest" {
-                                                        bodyView.setInput("zoomState", value: Double(1))
-                                                    }
-                                                    else if part == "Upper back" {
-                                                        bodyView.setInput("zoomState", value: Double(11))
-                                                    }
-                                                }
+                                VStack {
+                                    ScrollView {
+                                        if let bodyParts = bodyPartsData?.bodyParts,
+                                           let currentBodyParts = getBodyPartsArray(for: bodyParts, zoomState: bodyView.zoomState) {
+                                            BodyPartsListView(
+                                                bodyParts: currentBodyParts,
+                                                selectedBodyPart: $selectedBodyPart,
+                                                isSelected: $isSelected,
+                                                bodyView: bodyView
+                                            )
+                                        } else {
+                                            Text("No body parts available")
+                                                .font(.subheadline)
+                                                .foregroundStyle(.secondary)
+                                                .padding()
                                         }
-                                    } else {
-                                        Text("No body parts available")
                                     }
-                                }.scrollIndicators(.hidden)
+                                    .scrollIndicators(.hidden)
+                                }
                             }
                             
               //------------------------------------------Screen 3: select pain type
@@ -232,6 +233,21 @@ struct ContentView: View {
                                 }
                                     .padding(8)
                             }
+           //------------------------------------------Screen 5: summary
+                            else if stage == .summary {
+                                VStack{
+                                    let symptoms = selectedPills.joined(separator: ", ")
+                                    Text("I feel a \(selectedSeverity) \(symptoms) pain in my \(selectedBodyPart).")
+                                        .font(.headline)
+                                        .foregroundStyle(.secondary)
+                                        .padding()
+                                    Button("Start again") {
+                                        isStarting = true
+                                        selectedPills.removeAll()
+                                    }
+                                }
+                            }
+                            
         //-----------------------------------------------------------------------------Buttons
                             HStack{
                                 Button {
@@ -271,6 +287,10 @@ struct ContentView: View {
                                     } else if stage == .painType {
                                         withAnimation(.spring(duration: 0.3)) {
                                             stage = .severity
+                                        }
+                                    } else if stage == .severity {
+                                        withAnimation(.spring(duration: 0.3)){
+                                            stage = .summary
                                         }
                                     }
                                 } label: {
@@ -323,6 +343,9 @@ struct ContentView: View {
             } else if stage == .severity {
                 title = "How much does it hurt?"
                 subTitle = "Level of Pain"
+            } else if stage == .summary {
+                title = "Summary"
+                subTitle = ""
             }
             
         }
