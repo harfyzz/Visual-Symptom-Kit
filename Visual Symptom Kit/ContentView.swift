@@ -24,7 +24,9 @@ struct ContentView: View {
     @State var selectedPills:[String] = []
     @State var isPillSelected:Bool = false
     @State var selectedSeverity:String = "Mild"
-    @State var riveState:Double = 0
+    @State var startView = true
+    @State var showStats:Bool = true
+    @State var hurtMuscles:[String] = []
     
     
     var body: some View {
@@ -38,7 +40,7 @@ struct ContentView: View {
                 ZStack {
                     //----------------------------------------------------stats
                     VStack {
-                        if !isStarting {
+                        if showStats {
                             HStack {
                                 VStack{
                                     Image(systemName: "waveform.path.ecg")
@@ -79,7 +81,7 @@ struct ContentView: View {
                 }
                 .allowsHitTesting(stage == .selectPart)
                 //---------------------------------------------------- front/back tab
-                if stage == .selectPart {
+                if startView {
                     
                     VStack (spacing:16){
                         ZStack {
@@ -148,6 +150,7 @@ struct ContentView: View {
                             if bodyView.zoomState != "idle" {
                                 withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
                                     isStarting = true
+                                    showStats = false
                                 }
                             }
                             
@@ -171,9 +174,51 @@ struct ContentView: View {
                     }
                     .padding(.bottom, 32)
                 }
-                
-                
-                
+                else {
+                    let symptoms = selectedPills.joined(separator: ", ")
+                    VStack {
+                        Text("I feel a \(selectedSeverity), \(symptoms) pain in my \(selectedBodyPart).")
+                            .foregroundStyle(.secondary)
+                            .padding()
+                            .task {
+                                for muscle in hurtMuscles {
+                                    bodyView.setInput(muscle, value: true)
+                                }
+                            }
+                        
+                        HStack{
+                            Button {
+                                isStarting = true
+                                stage = .selectPart
+                                
+                            } label: {
+                                Text("Add area")
+                                    .padding()
+                                    .foregroundStyle(Color("text.primary"))
+                                    .frame(width:115)
+                            }
+                            
+                            Button {
+                                
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    Text("Save Log")
+                                        .padding()
+                                    Spacer()
+                                }
+                                .background(Color("bg.dark"))
+                                .foregroundStyle(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 64))
+                                
+                            }
+                          .disabled(
+                                stage == .painType && selectedPills.isEmpty
+                                )
+                        }
+                        .padding(.bottom, 4)
+                    }
+                }
             }
             //------------------------------------------Screen 2: select body part modal
             
@@ -234,19 +279,7 @@ struct ContentView: View {
                                     .padding(8)
                             }
            //------------------------------------------Screen 5: summary
-                            else if stage == .summary {
-                                VStack{
-                                    let symptoms = selectedPills.joined(separator: ", ")
-                                    Text("I feel a \(selectedSeverity) \(symptoms) pain in my \(selectedBodyPart).")
-                                        .font(.headline)
-                                        .foregroundStyle(.secondary)
-                                        .padding()
-                                    Button("Start again") {
-                                        isStarting = true
-                                        selectedPills.removeAll()
-                                    }
-                                }
-                            }
+                           
                             
         //-----------------------------------------------------------------------------Buttons
                             HStack{
@@ -254,6 +287,7 @@ struct ContentView: View {
                                     if stage == .selectPart {
                                         withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
                                             isStarting = false
+                                            showStats = true
                                         }
                                         bodyView.setInput("zoomState", value: Double (0))
                                         selectedPills.removeAll()
@@ -290,8 +324,13 @@ struct ContentView: View {
                                         }
                                     } else if stage == .severity {
                                         withAnimation(.spring(duration: 0.3)){
-                                            stage = .summary
+                                            title = "Summary"
+                                            bodyView.triggerInput("front and back")
+                                            startView = false
+                                            bodyView.setInput("zoomState", value: Double(0))
+                                            isStarting = false
                                         }
+                                        hurtMuscles.append(selectedBodyPart)
                                     }
                                 } label: {
                                     HStack {
@@ -343,9 +382,6 @@ struct ContentView: View {
             } else if stage == .severity {
                 title = "How much does it hurt?"
                 subTitle = "Level of Pain"
-            } else if stage == .summary {
-                title = "Summary"
-                subTitle = ""
             }
             
         }
@@ -379,7 +415,6 @@ enum Stages {
     case selectPart
     case painType
     case severity
-    case summary
 }
 #Preview {
     ContentView()
