@@ -12,7 +12,7 @@ struct PainSeverity: View {
     @State var isSelected: Bool = false
     @Binding var selectedSeverity: String
     @State var description: String = ""
-    @State var action: () -> Void
+    let action: () -> Void
     let severityTypes: [String] = ["Mild", "Moderate", "Severe", "Very severe"]
     
     var body: some View {
@@ -20,7 +20,7 @@ struct PainSeverity: View {
         VStack (spacing:24){
             HStack (alignment: .bottom, spacing: 8){
                 ForEach(severityTypes, id: \.self) { severityType in
-                    let checkmark = RiveViewModel(fileName: "checkmark", stateMachineName:"Checkmark", fit:.contain, artboardName: "Checkmark 2")
+                   
                     VStack {
                         Text(severityType)
                             .foregroundStyle(severityType == selectedSeverity ? Color("text.primary") :.secondary)
@@ -28,33 +28,19 @@ struct PainSeverity: View {
                         
                             
                             HStack {Spacer()
-                                     checkmark.view()
-                                    .frame(width: 16, height: 16)
-                              /*  if severityType == selectedSeverity {
+                                if severityType == selectedSeverity {
                                     
                                       Image(systemName:"checkmark")
                                         .fontWeight(.medium)
                                         .foregroundStyle(.white)
                                         .transition(.move(edge: .bottom))
-                                } */
+                                }
                                 
                                 Spacer()
                             }.frame(height: 46)
                             .background(Color("semantic.\(severityType)").opacity( severityType == selectedSeverity ? 1 : 0.2))
                             .clipShape(RoundedRectangle(cornerRadius: 64))
                         
-                       .onAppear {
-                           if severityType == selectedSeverity {
-                               checkmark.triggerInput("Active")
-                       }
-                        }
-                       .onChange(of: selectedSeverity) {oldValue, newValue in
-                           if severityType == selectedSeverity {
-                               checkmark.triggerInput("Active")
-                           } else {
-                               checkmark.triggerInput("idle")
-                           }
-                       }
                     }
                     
                     .onTapGesture {
@@ -88,7 +74,7 @@ struct PainSeverity: View {
 }
 
 #Preview {
-    PainSeverity(selectedSeverity: Binding.constant("Moderate"), action: {
+    PainSeverity(selectedSeverity: Binding.constant("Mild"), action: {
         
     })
 }

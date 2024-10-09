@@ -24,6 +24,7 @@ struct ContentView: View {
     @State var selectedPills:[String] = []
     @State var isPillSelected:Bool = false
     @State var selectedSeverity:String = "Mild"
+    @State var riveState:Double = 0
     
     
     var body: some View {
