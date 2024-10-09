@@ -10,7 +10,7 @@ import RiveRuntime
 
 class BodyViewModel: RiveViewModel {
     @Published var zoomState = ""
-    @Published var musclePart = ""// This will update your text based on the event value
+    @Published var musclePart = ""
 
     init() {
         super.init(fileName: "muscle_division", stateMachineName: "State Machine 1")
@@ -24,12 +24,11 @@ class BodyViewModel: RiveViewModel {
         if let generalEvent = riveEvent as? RiveGeneralEvent {
             let eventProperties = generalEvent.properties()
             
-            // Assuming the event has a property like "roomNumber"
             if let zoomLevel = eventProperties["CTRL"] as? String {
-                zoomState = "\(zoomLevel)"  // Update the room number from 1 to 7
+                zoomState = "\(zoomLevel)"
             }
             if let bodyPart = eventProperties["Body part"] as? String {
-                musclePart  = "\(bodyPart)"  // Update the room number from 1 to 7
+                musclePart  = "\(bodyPart)"
             }
             
         }

@@ -37,7 +37,7 @@ struct ContentView: View {
                 ZStack {
                     //----------------------------------------------------stats
                     VStack {
-                        if stage == .start {
+                        if !isStarting {
                             HStack {
                                 VStack{
                                     Image(systemName: "waveform.path.ecg")
@@ -106,6 +106,7 @@ struct ContentView: View {
                                 withAnimation{
                                     isBack = false
                                 }
+                                bodyView.triggerInput("front?")
                             } label: {
                                 Text("Front")
                                     .foregroundStyle(
@@ -123,6 +124,7 @@ struct ContentView: View {
                                 withAnimation{
                                     isBack = true
                                 }
+                                bodyView.triggerInput("back?")
                             } label: {
                                 Text("Back")
                                     .foregroundStyle(
@@ -133,9 +135,6 @@ struct ContentView: View {
                                 
                             }
                         }
-                    }
-                    .onChange(of: isBack) { oldValue, newValue in
-                        bodyView.setInput("back?", value: isBack)
                     }
                     .onChange(of: bodyView.musclePart, { oldValue, newValue in
                         withAnimation{
