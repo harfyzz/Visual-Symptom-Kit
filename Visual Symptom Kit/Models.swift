@@ -39,3 +39,11 @@ struct BodyPartsData: Codable {
 struct PainType {
     let painType: [String] = ["Stabbing","Throbbing", "Achy", "Pinching", "Burning", "Sharp", "Shooting", "Radiating", "Cramping", "Deep", "Superficial", "Other"]
 }
+
+struct PainSession:Identifiable {
+    let id = UUID()
+    var painPart:String = ""
+    var painTypes:[String] = []
+    var painSeverity:String = ""
+    var painDescription:String = ""
+}

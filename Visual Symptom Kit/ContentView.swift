@@ -27,15 +27,42 @@ struct ContentView: View {
     @State var startView = true
     @State var showStats:Bool = true
     @State var hurtMuscles:[String] = []
+    @State var painSession = PainSession()
+    @State var selectedDescription:String = ""
+    @State var painSessions = [PainSession]()
     
     
     var body: some View {
         ZStack {
             VStack {
                 //------------------------------------------------------------header/title
-                Text(title)
-                    .font(.headline)
-                    .foregroundStyle(Color("text.primary"))
+                ZStack {
+                    if !startView {
+                        HStack{
+                            Image(systemName: "gobackward")
+                            Spacer()
+                        }
+                        .onTapGesture {
+                                for muscle in hurtMuscles {
+                                    bodyView.setInput(muscle, value: false)
+                                }
+                            print(hurtMuscles)
+                            isBack = false
+                            bodyView.triggerInput("front?")
+                            stage = .selectPart
+                            withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
+                                startView = true
+                            }
+                            
+                            selectedPills.removeAll()
+                            selectedSeverity = "Mild"
+                            selectedDescription = ""
+                        }
+                    }
+                    Text(title)
+                        .font(.headline)
+                        .foregroundStyle(Color("text.primary"))
+                }
                 Spacer()
                 ZStack {
                     //----------------------------------------------------stats
@@ -177,30 +204,44 @@ struct ContentView: View {
                     .padding(.bottom, 32)
                 }
                 else {
-                    let symptoms = selectedPills.joined(separator: ", ")
+                    let symptoms = painSession.painTypes.joined(separator: ", ")
+                        
+                        // Converts each painSession to a string
+                        let sessionDescriptions = painSessions.map { session in
+                            return "\(session.painSeverity), \(symptoms) pain in my \(session.painPart)"
+                        }
+                        
+                        // Join all session descriptions with " and "
+                        let sessionCollection = sessionDescriptions.joined(separator: ", and a ")
                     VStack {
-                        Text("I feel a \(selectedSeverity), \(symptoms) pain in my \(selectedBodyPart).")
-                            .foregroundStyle(.secondary)
-                            .padding()
-                            .multilineTextAlignment(.center)
-                            .task {
-                                for muscle in hurtMuscles {
-                                        bodyView.setInput(muscle, value: true)
-                                }
+                       
+                        Text("I feel a \(sessionCollection.lowercased())")
+                                .foregroundStyle(.secondary)
+                                .padding()
+                                .multilineTextAlignment(.center)
+                        .task {
+                            for muscle in hurtMuscles {
+                                bodyView.setInput(muscle, value: true)
                             }
+                        }
                         
                         HStack{
                             Button {
+                                
+                                isBack = false
                                 bodyView.triggerInput("front?")
                                 stage = .selectPart
                                 withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
                                     startView = true
                                 }
-                                Task {
+                                
                                     for muscle in hurtMuscles {
                                         bodyView.setInput(muscle, value: false)
-                                    }
+                                    
                                 }
+                                selectedPills.removeAll()
+                                selectedSeverity = "Mild"
+                                selectedDescription = ""
                                 
                             } label: {
                                 Text("Add area")
@@ -223,11 +264,11 @@ struct ContentView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 64))
                                 
                             }
-                          .disabled(
+                            .disabled(
                                 stage == .painType && selectedPills.isEmpty
-                                )
+                            )
                         }
-                        .padding(.bottom, 4)
+                        .padding(.bottom, 16)
                     }
                 }
             }
@@ -235,143 +276,153 @@ struct ContentView: View {
             
             if isStarting {
                 VStack {Spacer()
-                        VStack{
+                    VStack{
+                        VStack {
+                            VStack(spacing:8){
+                                Text(subTitle)
+                                    .foregroundStyle(Color("text.secondary"))
+                                if stage == .selectPart {
+                                    Text(selectedBodyPart)
+                                        .contentTransition(.numericText())
+                                        .font(.title2)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(Color("text.primary"))
+                                    
+                                }
+                            }.padding()
+                        }
+                        if stage == .selectPart {
+                            //---------------------------------------------------For Each section
                             VStack {
-                                VStack(spacing:8){
-                                    Text(subTitle)
-                                        .foregroundStyle(Color("text.secondary"))
-                                    if stage == .selectPart {
-                                        Text(selectedBodyPart)
-                                            .contentTransition(.numericText())
-                                            .font(.title2)
-                                            .fontWeight(.medium)
-                                            .foregroundStyle(Color("text.primary"))
+                                ScrollView {
+                                    if let bodyParts = bodyPartsData?.bodyParts,
+                                       let currentBodyParts = getBodyPartsArray(for: bodyParts, zoomState: bodyView.zoomState) {
+                                        BodyPartsListView(
+                                            bodyParts: currentBodyParts,
+                                            selectedBodyPart: $selectedBodyPart,
+                                            isSelected: $isSelected,
+                                            bodyView: bodyView
+                                        )
+                                    } else {
+                                        Text("No body parts available")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                            .padding()
+                                    }
+                                }
+                                .scrollIndicators(.hidden)
+                            }
+                        }
+                        
+                        //------------------------------------------Screen 3: select pain type
+                        else if stage == .painType {
+                            PainTypeView(selectedPills: $selectedPills)
+                                .padding(8)
+                        }
+                        
+                        //------------------------------------------Screen 4: select pain severity
+                        else if stage == .severity {
+                            
+                            PainSeverity(selectedSeverity:$selectedSeverity, description:$selectedDescription) {
+                                bodyView.triggerInput("\(selectedBodyPart)-\(selectedSeverity)")
+                            }.onAppear{
+                                bodyView.triggerInput("\(selectedBodyPart)-\(selectedSeverity)")
+                            }
+                            .padding(8)
+                        }
+                        //------------------------------------------Screen 5: summary
+                        
+                        
+                        //-----------------------------------------------------------------------------Buttons
+                        HStack{
+                            Button {
+                                if stage == .selectPart {
+                                    withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
+                                        isStarting = false
+                                        if hurtMuscles.isEmpty {
+                                            showStats = true
+                                        }
                                         
                                     }
-                                }.padding()
-                            }
-                            if stage == .selectPart {
-                                //---------------------------------------------------For Each section
-                                VStack {
-                                    ScrollView {
-                                        if let bodyParts = bodyPartsData?.bodyParts,
-                                           let currentBodyParts = getBodyPartsArray(for: bodyParts, zoomState: bodyView.zoomState) {
-                                            BodyPartsListView(
-                                                bodyParts: currentBodyParts,
-                                                selectedBodyPart: $selectedBodyPart,
-                                                isSelected: $isSelected,
-                                                bodyView: bodyView
-                                            )
-                                        } else {
-                                            Text("No body parts available")
-                                                .font(.subheadline)
-                                                .foregroundStyle(.secondary)
-                                                .padding()
-                                        }
-                                    }
-                                    .scrollIndicators(.hidden)
+                                    bodyView.setInput("zoomState", value: Double (0))
+                                    selectedPills.removeAll()
                                 }
-                            }
-                            
-              //------------------------------------------Screen 3: select pain type
-                            else if stage == .painType {
-                                PainTypeView(selectedPills: $selectedPills)
-                                    .padding(8)
-                            }
-             
-       //------------------------------------------Screen 4: select pain severity
-                            else if stage == .severity {
                                 
-                                PainSeverity(selectedSeverity:$selectedSeverity) {
-                                    bodyView.triggerInput("\(selectedBodyPart)-\(selectedSeverity)")
-                                }.onAppear{
-                                    bodyView.triggerInput("\(selectedBodyPart)-\(selectedSeverity)")
+                                else if stage == .painType {
+                                    withAnimation(.spring(duration: 0.3)){
+                                        stage = .selectPart
+                                    }
+                                    bodyView.setInput("active?", value: true)
+                                } else if stage == .severity {
+                                    withAnimation(.spring(duration: 0.3)){
+                                        stage = .painType
+                                    }
                                 }
-                                    .padding(8)
+                            } label: {
+                                Image(systemName: "arrow.down")
+                                    .rotationEffect(.degrees(stage == .selectPart ? 0 : 90 ))
+                                    .padding()
+                                    .foregroundStyle(Color("text.primary"))
+                                    .frame(width:115)
+                                
                             }
-           //------------------------------------------Screen 5: summary
-                           
                             
-        //-----------------------------------------------------------------------------Buttons
-                            HStack{
-                                Button {
-                                    if stage == .selectPart {
-                                        withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
-                                            isStarting = false
-                                            if hurtMuscles.isEmpty {
-                                                showStats = true
-                                            }
-                                            
-                                        }
-                                        bodyView.setInput("zoomState", value: Double (0))
-                                        selectedPills.removeAll()
+                            Button {
+                                if stage == .selectPart {
+                                    withAnimation(.spring(duration: 0.3)) {
+                                        stage = .painType
                                     }
+                                    bodyView.setInput("active?", value: false)
+                                } else if stage == .painType {
+                                    withAnimation(.spring(duration: 0.3)) {
+                                        stage = .severity
+                                    }
+                                } else if stage == .severity {
                                     
-                                    else if stage == .painType {
-                                        withAnimation(.spring(duration: 0.3)){
-                                            stage = .selectPart
-                                        }
-                                        bodyView.setInput("active?", value: true)
-                                    } else if stage == .severity {
-                                        withAnimation(.spring(duration: 0.3)){
-                                            stage = .painType
-                                        }
+                                    //---------------------------------------------------- add painSession
+                                    painSession.painPart = selectedBodyPart
+                                    painSession.painTypes = selectedPills
+                                    painSession.painDescription = selectedDescription
+                                    painSession.painSeverity = selectedSeverity
+                                    painSessions.append(painSession)
+                                    print(hurtMuscles)
+                                    //---------------------------------------------------- add painSession end
+                                    
+                                    withAnimation(.spring(duration: 0.3)){
+                                        title = "Summary"
+                                        bodyView.triggerInput("front and back")
+                                        startView = false
+                                        bodyView.setInput("zoomState", value: Double(0))
+                                        isStarting = false
                                     }
-                                } label: {
-                                    Image(systemName: "arrow.down")
-                                        .rotationEffect(.degrees(stage == .selectPart ? 0 : 90 ))
+                                    hurtMuscles.append(selectedBodyPart)
+                                }
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    Text(stage == .severity ? "Finish" : "Continue")
                                         .padding()
-                                        .foregroundStyle(Color("text.primary"))
-                                        .frame(width:115)
-                                    
+                                    Spacer()
                                 }
+                                .background(Color("bg.dark"))
+                                .foregroundStyle(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 64))
                                 
-                                Button {
-                                    if stage == .selectPart {
-                                        withAnimation(.spring(duration: 0.3)) {
-                                            stage = .painType
-                                        }
-                                        bodyView.setInput("active?", value: false)
-                                    } else if stage == .painType {
-                                        withAnimation(.spring(duration: 0.3)) {
-                                            stage = .severity
-                                        }
-                                    } else if stage == .severity {
-                                        withAnimation(.spring(duration: 0.3)){
-                                            title = "Summary"
-                                            bodyView.triggerInput("front and back")
-                                            startView = false
-                                            bodyView.setInput("zoomState", value: Double(0))
-                                            isStarting = false
-                                        }
-                                        hurtMuscles.append(selectedBodyPart)
-                                    }
-                                } label: {
-                                    HStack {
-                                        Spacer()
-                                        Text("Continue")
-                                            .padding()
-                                        Spacer()
-                                    }
-                                    .background(Color("bg.dark"))
-                                    .foregroundStyle(.white)
-                                    .clipShape(RoundedRectangle(cornerRadius: 64))
-                                    
-                                }
-                              .disabled(
-                                    stage == .painType && selectedPills.isEmpty
-                                    )
                             }
-                            .padding(.bottom, 4)
-                            
+                            .disabled(
+                                stage == .painType && selectedPills.isEmpty
+                            )
                         }
-                        .padding(8)
-                        .frame(height: stage == .selectPart ? 450 : nil)
-                        .background(
-                            RoundedRectangle(cornerRadius: 32)
-                                .fill(.white)
-                                .shadow(color:.black.opacity(0.1), radius: 16)
-                        )
+                        .padding(.bottom, 4)
+                        
+                    }
+                    .padding(8)
+                    .frame(height: stage == .selectPart ? 450 : nil)
+                    .background(
+                        RoundedRectangle(cornerRadius: 32)
+                            .fill(.white)
+                            .shadow(color:.black.opacity(0.1), radius: 16)
+                    )
                 }.zIndex(2)
                     .transition(.move(edge: .bottom))
             }

@@ -9,12 +9,12 @@ import SwiftUI
 
 struct PainTypeView: View {
     
-    @State var painList = PainType()
+    @State var painTypes = PainType()
     @Binding var selectedPills:[String]
     
     var body: some View {
         LazyVGrid(columns: [GridItem(), GridItem()], spacing: 8) {
-            ForEach(painList.painType, id:\.self) { pain in
+            ForEach(painTypes.painType, id:\.self) { pain in
                 HStack{
                     Spacer()
                     Text(pain)

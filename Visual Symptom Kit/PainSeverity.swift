@@ -11,7 +11,7 @@ import RiveRuntime
 struct PainSeverity: View {
     @State var isSelected: Bool = false
     @Binding var selectedSeverity: String
-    @State var description: String = ""
+    @Binding var description: String 
     let action: () -> Void
     let severityTypes: [String] = ["Mild", "Moderate", "Severe", "Very severe"]
     
@@ -74,7 +74,7 @@ struct PainSeverity: View {
 }
 
 #Preview {
-    PainSeverity(selectedSeverity: Binding.constant("Mild"), action: {
+    PainSeverity(selectedSeverity: Binding.constant("Mild"), description: Binding.constant(""), action: {
         
     })
 }
