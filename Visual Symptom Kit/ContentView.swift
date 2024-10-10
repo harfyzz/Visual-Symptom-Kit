@@ -77,9 +77,11 @@ struct ContentView: View {
                     }
                     .padding(.top, 32)
                     //---------------------------------------------- Rive view
-                    bodyView.view()
+                    VStack {
+                        bodyView.view()
+                    }.allowsHitTesting(stage == .selectPart)
                 }
-                .allowsHitTesting(stage == .selectPart)
+                
                 //---------------------------------------------------- front/back tab
                 if startView {
                     
@@ -188,8 +190,11 @@ struct ContentView: View {
                         
                         HStack{
                             Button {
-                                isStarting = true
+                                bodyView.triggerInput("front?")
                                 stage = .selectPart
+                                withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
+                                    startView = true
+                                }
                                 
                             } label: {
                                 Text("Add area")
@@ -287,7 +292,10 @@ struct ContentView: View {
                                     if stage == .selectPart {
                                         withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
                                             isStarting = false
-                                            showStats = true
+                                            if hurtMuscles.isEmpty {
+                                                showStats = true
+                                            }
+                                            
                                         }
                                         bodyView.setInput("zoomState", value: Double (0))
                                         selectedPills.removeAll()
