@@ -221,6 +221,7 @@ struct ContentView: View {
                                 .foregroundStyle(.secondary)
                                 .padding()
                                 .multilineTextAlignment(.center)
+                                .lineLimit(4)
                         
                         HStack{
                             Button {
