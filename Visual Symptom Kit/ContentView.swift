@@ -350,6 +350,7 @@ struct ContentView: View {
                                     }
                                     bodyView.setInput("active?", value: true)
                                 } else if stage == .severity {
+                                    bodyView.triggerInput(selectedBodyPart)
                                     withAnimation(.spring(duration: 0.3)){
                                         stage = .painType
                                     }
