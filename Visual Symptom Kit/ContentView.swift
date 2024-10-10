@@ -19,7 +19,7 @@ struct ContentView: View {
     @State private var selectedBodyPart = ""
     @State var title:String = "How do you feel today?"
     @State var zoom:String  = "Front1"
-    @State var isStarting = false
+    @State var isPopUp = false
     @State var subTitle = "I feel pain in my"
     @State var selectedPills:[String] = []
     @State var isPillSelected:Bool = false
@@ -46,6 +46,8 @@ struct ContentView: View {
                                 for muscle in hurtMuscles {
                                     bodyView.setInput(muscle, value: false)
                                 }
+                            hurtMuscles.removeLast()
+                            painSessions.removeLast()
                             print(hurtMuscles)
                             isBack = false
                             bodyView.triggerInput("front?")
@@ -178,7 +180,7 @@ struct ContentView: View {
                         .onChange(of: bodyView.zoomState) { oldValue, newValue in
                             if bodyView.zoomState != "idle" {
                                 withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
-                                    isStarting = true
+                                    isPopUp = true
                                     showStats = false
                                 }
                             }
@@ -219,15 +221,9 @@ struct ContentView: View {
                                 .foregroundStyle(.secondary)
                                 .padding()
                                 .multilineTextAlignment(.center)
-                        .task {
-                            for muscle in hurtMuscles {
-                                bodyView.setInput(muscle, value: true)
-                            }
-                        }
                         
                         HStack{
                             Button {
-                                
                                 isBack = false
                                 bodyView.triggerInput("front?")
                                 stage = .selectPart
@@ -274,7 +270,7 @@ struct ContentView: View {
             }
             //------------------------------------------Screen 2: select body part modal
             
-            if isStarting {
+            if isPopUp {
                 VStack {Spacer()
                     VStack{
                         VStack {
@@ -338,7 +334,7 @@ struct ContentView: View {
                             Button {
                                 if stage == .selectPart {
                                     withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
-                                        isStarting = false
+                                        isPopUp = false
                                         if hurtMuscles.isEmpty {
                                             showStats = true
                                         }
@@ -385,7 +381,6 @@ struct ContentView: View {
                                     painSession.painDescription = selectedDescription
                                     painSession.painSeverity = selectedSeverity
                                     painSessions.append(painSession)
-                                    print(hurtMuscles)
                                     //---------------------------------------------------- add painSession end
                                     
                                     withAnimation(.spring(duration: 0.3)){
@@ -393,9 +388,13 @@ struct ContentView: View {
                                         bodyView.triggerInput("front and back")
                                         startView = false
                                         bodyView.setInput("zoomState", value: Double(0))
-                                        isStarting = false
+                                        isPopUp = false
                                     }
                                     hurtMuscles.append(selectedBodyPart)
+                                    for muscle in hurtMuscles {
+                                        bodyView.setInput(muscle, value: true)
+                                    }
+                                    print(hurtMuscles)
                                 }
                             } label: {
                                 HStack {
