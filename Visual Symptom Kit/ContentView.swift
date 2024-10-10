@@ -182,9 +182,10 @@ struct ContentView: View {
                         Text("I feel a \(selectedSeverity), \(symptoms) pain in my \(selectedBodyPart).")
                             .foregroundStyle(.secondary)
                             .padding()
+                            .multilineTextAlignment(.center)
                             .task {
                                 for muscle in hurtMuscles {
-                                    bodyView.setInput(muscle, value: true)
+                                        bodyView.setInput(muscle, value: true)
                                 }
                             }
                         
@@ -194,6 +195,11 @@ struct ContentView: View {
                                 stage = .selectPart
                                 withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
                                     startView = true
+                                }
+                                Task {
+                                    for muscle in hurtMuscles {
+                                        bodyView.setInput(muscle, value: false)
+                                    }
                                 }
                                 
                             } label: {
