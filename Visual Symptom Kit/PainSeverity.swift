@@ -14,6 +14,7 @@ struct PainSeverity: View {
     @Binding var description: String 
     let action: () -> Void
     let severityTypes: [String] = ["Mild", "Moderate", "Severe", "Very severe"]
+    @FocusState private var isInputFocused: Bool
     
     var body: some View {
         
@@ -62,12 +63,16 @@ struct PainSeverity: View {
                     Text("Optional")
                         .foregroundStyle(.secondary)
                 }
-                TextField("Describe in detail...", text: $description,axis: .vertical)
+                TextField("Describe in detail...", text: $description)
                     .tint(Color("text.secondary"))
                     .padding()
                     .background(Color("bg.tertiary"))
                     .clipShape(RoundedRectangle(cornerRadius: 32))
-                    .lineLimit(4)
+                    .focused($isInputFocused)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        isInputFocused = false
+                    }
             }
         }
     }

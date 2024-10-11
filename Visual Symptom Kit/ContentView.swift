@@ -33,6 +33,7 @@ struct ContentView: View {
     @State var showToast = false
     @State var toastMessage: String = ""
     var riveAlert = RiveViewModel(fileName: "alert", fit:.contain)
+    @FocusState var isInputFocused: Bool
     
     
     var body: some View {
@@ -354,6 +355,7 @@ struct ContentView: View {
                                 bodyView.triggerInput("\(selectedBodyPart)-\(selectedSeverity)")
                             }
                             .padding(8)
+                            
                         }
                         //------------------------------------------Screen 5: summary
                         
@@ -480,8 +482,7 @@ struct ContentView: View {
             
         }
         .preferredColorScheme(.light)
-        .padding()
-        .edgesIgnoringSafeArea(.bottom)
+        .padding(.horizontal, 16)
         .onAppear {
             loadBodyPartsData()
         }
