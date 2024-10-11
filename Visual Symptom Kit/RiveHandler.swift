@@ -13,7 +13,7 @@ class BodyViewModel: RiveViewModel {
     @Published var musclePart = ""
 
     init() {
-        super.init(fileName: "muscle_division", stateMachineName: "State Machine 1")
+        super.init(fileName: "muscle_division", stateMachineName: "State Machine 1", fit:.fitHeight)
     }
     
     func view() -> some View {

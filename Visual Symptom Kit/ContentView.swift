@@ -293,6 +293,7 @@ struct ContentView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 32))
                 }
             }
+            .ignoresSafeArea(.keyboard)
             //------------------------------------------Screen 2: select body part modal
             
             if isPopUp {
