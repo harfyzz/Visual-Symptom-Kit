@@ -30,6 +30,9 @@ struct ContentView: View {
     @State var painSession = PainSession()
     @State var selectedDescription:String = ""
     @State var painSessions = [PainSession]()
+    @State var showToast = false
+    @State var toastMessage: String = ""
+    var riveAlert = RiveViewModel(fileName: "alert", fit:.contain)
     
     
     var body: some View {
@@ -59,6 +62,26 @@ struct ContentView: View {
                             selectedPills.removeAll()
                             selectedSeverity = "Mild"
                             selectedDescription = ""
+                        }
+                    } else {
+                        if painSessions.count > 0 {
+                            HStack{
+                                Image(systemName: "xmark")
+                                Spacer()
+                            }.onTapGesture {
+                                withAnimation(.easeInOut){
+                                    startView = false
+                                }
+                                withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
+                                    title = "Summary"
+                                    bodyView.triggerInput("front and back")
+                                    bodyView.setInput("zoomState", value: Double(0))
+                                    isPopUp = false
+                                }
+                                for muscle in hurtMuscles {
+                                    bodyView.setInput(muscle, value: true)
+                                }
+                            }
                         }
                     }
                     Text(title)
@@ -109,6 +132,7 @@ struct ContentView: View {
                     VStack {
                         bodyView.view()
                     }.allowsHitTesting(stage == .selectPart)
+                        .scaleEffect(!startView ? 1.2 : 1)
                 }
                 
                 //---------------------------------------------------- front/back tab
@@ -217,8 +241,8 @@ struct ContentView: View {
                         // Join all session descriptions with " and "
                         let sessionCollection = sessionDescriptions.joined(separator: ", and a ")
                     VStack {
-                        Text("I feel a \(sessionCollection.lowercased())")
-                            .foregroundStyle(Color(.white))
+                        Text("I feel a \(sessionCollection.lowercased()).")
+                            .foregroundStyle(Color("text.secondary"))
                                 .padding()
                                 .multilineTextAlignment(.center)
                                 .lineLimit(4)
@@ -242,8 +266,8 @@ struct ContentView: View {
                                 
                             } label: {
                                 Text("Add area")
+                                    .foregroundStyle(Color("text.primary"))
                                     .padding()
-                                    .foregroundStyle(.white)
                                     .frame(width:115)
                             }
                             
@@ -256,18 +280,15 @@ struct ContentView: View {
                                         .padding()
                                     Spacer()
                                 }
-                                .background(.white)
-                                .foregroundStyle(Color("text.primary"))
+                                .background(Color("bg.dark"))
+                                .foregroundStyle(.white)
                                 .clipShape(RoundedRectangle(cornerRadius: 64))
                                 
                             }
-                            .disabled(
-                                stage == .painType && selectedPills.isEmpty
-                            )
                         }
                     }
-                    .padding()
-                    .background(Color("bg.dark"))
+                    .padding(8)
+                    .background(Color("bg.tertiary"))
                         .clipShape(RoundedRectangle(cornerRadius: 32))
                 }
             }
@@ -374,10 +395,22 @@ struct ContentView: View {
                             
                             Button {
                                 if stage == .selectPart {
-                                    withAnimation(.spring(duration: 0.3)) {
-                                        stage = .painType
+                                    if hurtMuscles.contains(selectedBodyPart) {
+                                        withAnimation {
+                                            showToast = true
+                                            riveAlert.triggerInput("active?")
+                                        }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                            withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)) {
+                                                showToast = false
+                                            }
+                                        }
+                                    } else {
+                                        withAnimation(.spring(duration: 0.3)) {
+                                            stage = .painType
+                                        }
+                                        bodyView.setInput("active?", value: false)
                                     }
-                                    bodyView.setInput("active?", value: false)
                                 } else if stage == .painType {
                                     withAnimation(.spring(duration: 0.3)) {
                                         stage = .severity
@@ -391,11 +424,12 @@ struct ContentView: View {
                                     painSession.painSeverity = selectedSeverity
                                     painSessions.append(painSession)
                                     //---------------------------------------------------- add painSession end
-                                    
+                                    withAnimation(.easeIn){
+                                        startView = false
+                                    }
                                     withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
                                         title = "Summary"
                                         bodyView.triggerInput("front and back")
-                                        startView = false
                                         bodyView.setInput("zoomState", value: Double(0))
                                         isPopUp = false
                                     }
@@ -433,6 +467,15 @@ struct ContentView: View {
                     )
                 }.zIndex(2)
                     .transition(.move(edge: .bottom))
+            }
+            if showToast {
+                ToastView(message: "Body part already logged.",riveAlert: riveAlert)
+                    .transition(.move(edge: .top))
+                    .onTapGesture {
+                        
+                        riveAlert.triggerInput("active?")
+                    }
+                    .zIndex(3)
             }
             
         }
@@ -480,11 +523,6 @@ struct ContentView: View {
         
         return nil
     }
-    func summaryText(_ text: String) -> some View {
-        Text(text)
-            .fontWeight(.medium)
-            .foregroundColor(Color("text.primary"))
-    }
     
 }
 
@@ -521,8 +559,23 @@ struct BodyItem: View {
     }
 }
 
-extension Color {
-    static let darkGreen = Color(red: 0.0, green: 0.5, blue: 0.0) // Darker shade of green
+struct ToastView: View {
+    let message: String
+    var riveAlert:RiveViewModel
+    
+    var body: some View {
+        VStack {
+            HStack {
+                riveAlert.view()
+                    .frame(width: 20, height: 20)
+                Text(message)
+                    
+            }.padding()
+                .background(.white)
+                .foregroundColor(Color("text.secondary"))
+                .clipShape(RoundedRectangle(cornerRadius: 64))
+                .shadow(color:.black.opacity(0.1), radius: 16)
+            Spacer()
+        }
+    }
 }
-
-
