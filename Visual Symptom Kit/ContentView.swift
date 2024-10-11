@@ -205,6 +205,7 @@ struct ContentView: View {
                     }
                     .padding(.bottom, 32)
                 }
+                //---------------------------------------------------- front/back tab
                 else {
                     let symptoms = painSession.painTypes.joined(separator: ", ")
                         
@@ -216,9 +217,8 @@ struct ContentView: View {
                         // Join all session descriptions with " and "
                         let sessionCollection = sessionDescriptions.joined(separator: ", and a ")
                     VStack {
-                       
                         Text("I feel a \(sessionCollection.lowercased())")
-                                .foregroundStyle(.secondary)
+                            .foregroundStyle(Color(.white))
                                 .padding()
                                 .multilineTextAlignment(.center)
                                 .lineLimit(4)
@@ -243,7 +243,7 @@ struct ContentView: View {
                             } label: {
                                 Text("Add area")
                                     .padding()
-                                    .foregroundStyle(Color("text.primary"))
+                                    .foregroundStyle(.white)
                                     .frame(width:115)
                             }
                             
@@ -256,8 +256,8 @@ struct ContentView: View {
                                         .padding()
                                     Spacer()
                                 }
-                                .background(Color("bg.dark"))
-                                .foregroundStyle(.white)
+                                .background(.white)
+                                .foregroundStyle(Color("text.primary"))
                                 .clipShape(RoundedRectangle(cornerRadius: 64))
                                 
                             }
@@ -265,8 +265,10 @@ struct ContentView: View {
                                 stage == .painType && selectedPills.isEmpty
                             )
                         }
-                        .padding(.bottom, 16)
                     }
+                    .padding()
+                    .background(Color("bg.dark"))
+                        .clipShape(RoundedRectangle(cornerRadius: 32))
                 }
             }
             //------------------------------------------Screen 2: select body part modal
@@ -275,18 +277,23 @@ struct ContentView: View {
                 VStack {Spacer()
                     VStack{
                         VStack {
-                            VStack(spacing:8){
-                                Text(subTitle)
-                                    .foregroundStyle(Color("text.secondary"))
-                                if stage == .selectPart {
-                                    Text(selectedBodyPart)
-                                        .contentTransition(.numericText())
-                                        .font(.title2)
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(Color("text.primary"))
-                                    
+                            HStack {Spacer()
+                                VStack(spacing:4){
+                                    Text(subTitle)
+                                        .foregroundStyle(Color("text.secondary"))
+                                    if stage == .selectPart {
+                                        Text(selectedBodyPart)
+                                            .contentTransition(.numericText())
+                                            .font(.title2)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(Color("text.primary"))
+                                        
+                                    }
                                 }
-                            }.padding()
+                                Spacer() }.padding(8)
+                                    .background(Color(stage == .selectPart ? "bg.secondary" :"bg.primary"))
+                                    .clipShape(RoundedRectangle(cornerRadius: 64))
+                            
                         }
                         if stage == .selectPart {
                             //---------------------------------------------------For Each section
@@ -385,7 +392,7 @@ struct ContentView: View {
                                     painSessions.append(painSession)
                                     //---------------------------------------------------- add painSession end
                                     
-                                    withAnimation(.spring(duration: 0.3)){
+                                    withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
                                         title = "Summary"
                                         bodyView.triggerInput("front and back")
                                         startView = false
@@ -472,6 +479,11 @@ struct ContentView: View {
         }
         
         return nil
+    }
+    func summaryText(_ text: String) -> some View {
+        Text(text)
+            .fontWeight(.medium)
+            .foregroundColor(Color("text.primary"))
     }
     
 }
