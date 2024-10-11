@@ -24,8 +24,6 @@ struct ContentView: View {
     @State var selectedPills:[String] = []
     @State var isPillSelected:Bool = false
     @State var selectedSeverity:String = "Mild"
-    @State var startView = true
-    @State var showStats:Bool = true
     @State var hurtMuscles:[String] = []
     @State var painSession = PainSession()
     @State var selectedDescription:String = ""
@@ -37,7 +35,7 @@ struct ContentView: View {
             VStack {
                 //------------------------------------------------------------header/title
                 ZStack {
-                    if !startView {
+                    if stage == .summary {
                         HStack{
                             Image(systemName: "gobackward")
                             Spacer()
@@ -53,7 +51,7 @@ struct ContentView: View {
                             bodyView.triggerInput("front?")
                             stage = .selectPart
                             withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
-                                startView = true
+                                isPopUp = false
                             }
                             
                             selectedPills.removeAll()
@@ -69,7 +67,7 @@ struct ContentView: View {
                 ZStack {
                     //----------------------------------------------------stats
                     VStack {
-                        if showStats {
+                        if !isPopUp {
                             HStack {
                                 VStack{
                                     Image(systemName: "waveform.path.ecg")
@@ -112,7 +110,7 @@ struct ContentView: View {
                 }
                 
                 //---------------------------------------------------- front/back tab
-                if startView {
+                if !isPopUp {
                     
                     VStack (spacing:16){
                         ZStack {
@@ -181,7 +179,6 @@ struct ContentView: View {
                             if bodyView.zoomState != "idle" {
                                 withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
                                     isPopUp = true
-                                    showStats = false
                                 }
                             }
                             
@@ -206,70 +203,7 @@ struct ContentView: View {
                     .padding(.bottom, 32)
                 }
                 //---------------------------------------------------- front/back tab
-                else {
-                    let symptoms = painSession.painTypes.joined(separator: ", ")
-                        
-                        // Converts each painSession to a string
-                        let sessionDescriptions = painSessions.map { session in
-                            return "\(session.painSeverity), \(symptoms) pain in my \(session.painPart)"
-                        }
-                        
-                        // Join all session descriptions with " and "
-                        let sessionCollection = sessionDescriptions.joined(separator: ", and a ")
-                    VStack {
-                        Text("I feel a \(sessionCollection.lowercased())")
-                            .foregroundStyle(Color(.white))
-                                .padding()
-                                .multilineTextAlignment(.center)
-                                .lineLimit(4)
-                        
-                        HStack{
-                            Button {
-                                isBack = false
-                                bodyView.triggerInput("front?")
-                                stage = .selectPart
-                                withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
-                                    startView = true
-                                }
-                                
-                                    for muscle in hurtMuscles {
-                                        bodyView.setInput(muscle, value: false)
-                                    
-                                }
-                                selectedPills.removeAll()
-                                selectedSeverity = "Mild"
-                                selectedDescription = ""
-                                
-                            } label: {
-                                Text("Add area")
-                                    .padding()
-                                    .foregroundStyle(.white)
-                                    .frame(width:115)
-                            }
-                            
-                            Button {
-                                
-                            } label: {
-                                HStack {
-                                    Spacer()
-                                    Text("Save Log")
-                                        .padding()
-                                    Spacer()
-                                }
-                                .background(.white)
-                                .foregroundStyle(Color("text.primary"))
-                                .clipShape(RoundedRectangle(cornerRadius: 64))
-                                
-                            }
-                            .disabled(
-                                stage == .painType && selectedPills.isEmpty
-                            )
-                        }
-                    }
-                    .padding()
-                    .background(Color("bg.dark"))
-                        .clipShape(RoundedRectangle(cornerRadius: 32))
-                }
+              
             }
             //------------------------------------------Screen 2: select body part modal
             
@@ -335,7 +269,22 @@ struct ContentView: View {
                             .padding(8)
                         }
                         //------------------------------------------Screen 5: summary
-                        
+                        else if stage == .summary {
+                            let symptoms = painSession.painTypes.joined(separator: ", ")
+                                
+                                // Converts each painSession to a string
+                                let sessionDescriptions = painSessions.map { session in
+                                    return "\(session.painSeverity), \(symptoms) pain in my \(session.painPart)"
+                                }
+                                
+                                // Join all session descriptions with " and "
+                                let sessionCollection = sessionDescriptions.joined(separator: ", and a ")
+                                Text("I feel a \(sessionCollection.lowercased())")
+                                        .padding()
+                                        .multilineTextAlignment(.center)
+                                        .lineLimit(4)
+                                
+                        }
                         
                         //-----------------------------------------------------------------------------Buttons
                         HStack{
@@ -343,10 +292,6 @@ struct ContentView: View {
                                 if stage == .selectPart {
                                     withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
                                         isPopUp = false
-                                        if hurtMuscles.isEmpty {
-                                            showStats = true
-                                        }
-                                        
                                     }
                                     bodyView.setInput("zoomState", value: Double (0))
                                     selectedPills.removeAll()
@@ -363,13 +308,36 @@ struct ContentView: View {
                                         stage = .painType
                                     }
                                 }
+                                else if stage == .summary {
+                                    isBack = false
+                                    bodyView.triggerInput("front?")
+                                    stage = .selectPart
+                                    withAnimation(.timingCurve(0.42, 0, 0.09, 0.99, duration: 0.5)) {
+                                        isPopUp = false
+                                    }
+                                    
+                                        for muscle in hurtMuscles {
+                                            bodyView.setInput(muscle, value: false)
+                                        
+                                    }
+                                    selectedPills.removeAll()
+                                    selectedSeverity = "Mild"
+                                    selectedDescription = ""
+                                    
+                                }
                             } label: {
-                                Image(systemName: "arrow.down")
-                                    .rotationEffect(.degrees(stage == .selectPart ? 0 : 90 ))
-                                    .padding()
-                                    .foregroundStyle(Color("text.primary"))
-                                    .frame(width:115)
-                                
+                                if stage == .summary {
+                                    Text("Add area")
+                                        .padding()
+                                        .foregroundStyle(.white)
+                                        .frame(width:115)
+                                } else {
+                                    Image(systemName: "arrow.down")
+                                        .rotationEffect(.degrees(stage == .selectPart ? 0 : 90 ))
+                                        .padding()
+                                        .foregroundStyle(Color("text.primary"))
+                                        .frame(width:115)
+                                }
                             }
                             
                             Button {
@@ -394,15 +362,17 @@ struct ContentView: View {
                                     
                                     withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)){
                                         title = "Summary"
+                                        stage = .summary
                                         bodyView.triggerInput("front and back")
-                                        startView = false
+                                        
                                         bodyView.setInput("zoomState", value: Double(0))
-                                        isPopUp = false
+                                        
                                     }
                                     hurtMuscles.append(selectedBodyPart)
                                     for muscle in hurtMuscles {
                                         bodyView.setInput(muscle, value: true)
                                     }
+                                    
                                     print(hurtMuscles)
                                 }
                             } label: {
@@ -412,7 +382,7 @@ struct ContentView: View {
                                         .padding()
                                     Spacer()
                                 }
-                                .background(Color("bg.dark"))
+                                .background(stage == .summary ? .white : .black)
                                 .foregroundStyle(.white)
                                 .clipShape(RoundedRectangle(cornerRadius: 64))
                                 
@@ -493,6 +463,7 @@ enum Stages {
     case selectPart
     case painType
     case severity
+    case summary
 }
 #Preview {
     ContentView()
