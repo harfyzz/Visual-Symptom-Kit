@@ -40,8 +40,8 @@ struct PainType {
     let painType: [String] = ["Stabbing","Throbbing", "Achy", "Pinching", "Burning", "Sharp", "Shooting", "Radiating", "Cramping", "Deep", "Superficial"]
 }
 
-struct PainSession:Identifiable {
-    let id = UUID()
+struct PainSession:Hashable {
+    var id = UUID()
     var painPart:String = ""
     var painTypes:[String] = []
     var painSeverity:String = ""

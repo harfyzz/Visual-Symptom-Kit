@@ -69,6 +69,7 @@ struct ContentView: View {
                                 Image(systemName: "xmark")
                                 Spacer()
                             }.onTapGesture {
+                                stage = .severity
                                 withAnimation(.easeInOut){
                                     startView = false
                                 }
@@ -231,21 +232,19 @@ struct ContentView: View {
                 }
                 //---------------------------------------------------- front/back tab
                 else {
-                    let symptoms = painSession.painTypes.joined(separator: ", ")
-                        
-                        // Converts each painSession to a string
-                        let sessionDescriptions = painSessions.map { session in
-                            return "\(session.painSeverity), \(symptoms) pain in my \(session.painPart)"
-                        }
-                        
-                        // Join all session descriptions with " and "
-                        let sessionCollection = sessionDescriptions.joined(separator: ", and a ")
+                   
                     VStack {
-                        Text("I feel a \(sessionCollection.lowercased()).")
-                            .foregroundStyle(Color("text.secondary"))
-                                .padding()
-                                .multilineTextAlignment(.center)
-                                .lineLimit(4)
+                        ScrollView {
+                        ForEach(painSessions, id: \.self) { session in
+                            let symptoms = session.painTypes.joined(separator: ", ")
+                            
+                                Text("I feel a \(session.painSeverity.lowercased()), \(symptoms.lowercased()) pain in my \(session.painPart.lowercased()).")
+                                    .foregroundStyle(Color("text.secondary"))
+                                    .padding()
+                                    .multilineTextAlignment(.center)
+                            }
+                        }.frame(height:200)
+                       
                         
                         HStack{
                             Button {
@@ -438,7 +437,7 @@ struct ContentView: View {
                                     for muscle in hurtMuscles {
                                         bodyView.setInput(muscle, value: true)
                                     }
-                                    print(hurtMuscles)
+                                    print("Session: \(painSession.painSeverity), Symptoms: \(painSession.painTypes), BodyPart: \(painSession.painPart)")
                                 }
                             } label: {
                                 HStack {
