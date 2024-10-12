@@ -69,6 +69,7 @@ struct ContentView: View {
                                 Image(systemName: "xmark")
                                 Spacer()
                             }.onTapGesture {
+                                stage = .severity
                                 withAnimation(.easeInOut){
                                     startView = false
                                 }
