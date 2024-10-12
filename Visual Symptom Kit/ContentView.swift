@@ -33,7 +33,6 @@ struct ContentView: View {
     @State var showToast = false
     @State var toastMessage: String = ""
     var riveAlert = RiveViewModel(fileName: "alert", fit:.contain)
-    @FocusState var isInputFocused: Bool
     
     
     var body: some View {
@@ -99,7 +98,7 @@ struct ContentView: View {
                                     Image(systemName: "waveform.path.ecg")
                                         .padding(4)
                                         .foregroundStyle(.white)
-                                        .background(Color.green)
+                                        .background(Color(.green))
                                         .clipShape(Circle())
                                     
                                     Text("120/80")
@@ -401,7 +400,6 @@ struct ContentView: View {
                                     if hurtMuscles.contains(selectedBodyPart) {
                                         withAnimation {
                                             showToast = true
-                                            riveAlert.triggerInput("active?")
                                         }
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                                             withAnimation(.timingCurve(0.84, -0.01, 1, 0.68, duration: 0.5)) {
