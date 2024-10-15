@@ -62,6 +62,12 @@ struct ContentView: View {
                             selectedPills.removeAll()
                             selectedSeverity = "Mild"
                             selectedDescription = ""
+                            if painSessions.count == 0 {
+                                withAnimation(.easeInOut){
+                                    showStats = true
+                                }
+                                
+                            }
                         }
                     } else {
                         if painSessions.count > 0 {
