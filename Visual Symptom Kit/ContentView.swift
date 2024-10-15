@@ -552,9 +552,9 @@ struct BodyItem: View {
                 Text(item)
                     .foregroundStyle(Color(isSelected ? "text.primary" :"text.secondary"))
                 Spacer()
-                if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                }
+                    .scaleEffect(isSelected ? 1 : 0)
+                
             }
             .frame(height:45)
             .padding(.horizontal)

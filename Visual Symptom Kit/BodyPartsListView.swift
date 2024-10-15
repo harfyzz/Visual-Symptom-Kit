@@ -18,7 +18,7 @@ struct BodyPartsListView: View {
             BodyItem(item: part, isSelected: selectedBodyPart == part)
                 .onTapGesture {
                     isSelected = true
-                    withAnimation {
+                    withAnimation(.easeInOut(duration: 0.2)) {
                         selectedBodyPart = part
                         bodyView.triggerInput(part)
                     }
